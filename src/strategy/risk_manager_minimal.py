@@ -30,6 +30,12 @@ def check_total_exposure(active_trades: list[dict], new_index: str, new_side: st
     new_alloc = CAPITAL_PCT.get(new_alloc_key, 0.0)
     projected = current_exposure + new_alloc
 
+    logger.info(
+        "Projected exposure check: current=%.2f%%, new=%.2f%%, total_projected=%.2f%% -> %s",
+        current_exposure, new_alloc, projected,
+        "ACCEPT" if projected <= MAX_TOTAL_EXPOSURE_PCT else "REJECT"
+    )
+
     if projected > MAX_TOTAL_EXPOSURE_PCT:
         logger.warning(
             "RISK: Projected exposure %.2f%% > %.2f%% limit — REJECTING %s %s",

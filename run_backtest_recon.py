@@ -32,6 +32,7 @@ WARNING_BANNER = (
 
 PROCESSED_BARS_FILE = os.path.join(os.path.dirname(__file__), "processed_bars.log")
 OBSERVATIONS_FILE = os.path.join(os.path.dirname(__file__), "observations_log.md")
+DECISION_LOG_FILE = os.path.join(os.path.dirname(__file__), "decision_log.md")
 
 logging.basicConfig(
     level=logging.INFO,
@@ -64,6 +65,12 @@ def log_observation(bar_id: str, text: str) -> None:
     ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     with open(OBSERVATIONS_FILE, "a") as f:
         f.write(f"{ts} | {bar_id} | {text}\n")
+
+
+def log_decision(bar_id: str, side: str, decision: str, reason: str) -> None:
+    ts = datetime.now().isoformat()
+    with open(DECISION_LOG_FILE, "a") as f:
+        f.write(f"{ts} | {bar_id} | side={side} | decision={decision} | reason={reason}\n")
 
 
 def generate_trading_bars(start: datetime, end: datetime):
@@ -174,16 +181,25 @@ def run_backtest():
 
                 if not passes:
                     rejected_count += 1
+                    log_decision(bar_id, side, "REJECT",
+                                 f"premium_ratio_{ratio:.2f}_outside_0.9-1.1")
                     continue
 
                 # 60% exposure gate
                 if not check_total_exposure(active_trades, index, side):
+                    from config.frozen_params import CAPITAL_PCT as _CP
+                    _cur = sum(_CP.get(f"{t['index']}_{t['side']}", 0) for t in active_trades)
+                    _new = _CP.get(f"{index}_{side}", 0)
                     rejected_count += 1
+                    log_decision(bar_id, side, "REJECT",
+                                 f"total_exposure_would_be_{_cur + _new:.1f}_percent")
                     continue
 
                 # Concurrent limit
                 if not check_concurrent_limit(active_trades, index, side):
                     rejected_count += 1
+                    log_decision(bar_id, side, "REJECT",
+                                 f"concurrent_limit_{index}_{side}")
                     continue
 
                 valid_count += 1
@@ -201,6 +217,7 @@ def run_backtest():
                     f"side={side}"
                 )
                 log_observation(bar_id, obs_text)
+                log_decision(bar_id, side, "ACCEPT", "passed_all_gates")
 
                 if valid_count <= 5 or valid_count % 100 == 0:
                     logger.info("%s", WARNING_BANNER)
@@ -262,12 +279,21 @@ def run_simulated_paper(n_signals: int = 10):
                 index, side
             )
             if not passes:
+                log_decision(bar_id, side, "REJECT",
+                             f"premium_ratio_{ratio:.2f}_outside_0.9-1.1")
                 continue
 
             if not check_total_exposure(active_trades, index, side):
+                from config.frozen_params import CAPITAL_PCT as _CP2
+                _cur = sum(_CP2.get(f"{t['index']}_{t['side']}", 0) for t in active_trades)
+                _new = _CP2.get(f"{index}_{side}", 0)
+                log_decision(bar_id, side, "REJECT",
+                             f"total_exposure_would_be_{_cur + _new:.1f}_percent")
                 continue
 
             if not check_concurrent_limit(active_trades, index, side):
+                log_decision(bar_id, side, "REJECT",
+                             f"concurrent_limit_{index}_{side}")
                 continue
 
             valid_count += 1
@@ -282,6 +308,7 @@ def run_simulated_paper(n_signals: int = 10):
                 f"side={side}"
             )
             log_observation(bar_id, obs_text)
+            log_decision(bar_id, side, "ACCEPT", "passed_all_gates")
             logger.info("%s", WARNING_BANNER)
             logger.info("PAPER SIGNAL #%d: %s | %s", valid_count, bar_id, obs_text)
 
