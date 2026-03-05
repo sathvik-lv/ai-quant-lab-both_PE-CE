@@ -1,21 +1,21 @@
 {
   "total_bars_processed": 84050,
-  "accept_count": 19,
-  "reject_count": 84031,
+  "accept_count": 18,
+  "reject_count": 84032,
   "reject_breakdown": {
-    "premium_ratio_outside": 27947,
-    "concurrent_limit": 28024,
-    "total_exposure_exceeded": 28060
+    "premium_ratio_outside": 27958,
+    "total_exposure_exceeded": 49069,
+    "concurrent_limit": 7005
   },
   "accept_by_side": {
-    "CE": 11,
-    "PE": 8
+    "PE": 8,
+    "CE": 10
   },
   "accept_by_index": {
-    "FINNIFTY": 7,
+    "FINNIFTY": 4,
     "MIDCPNIFTY": 3,
-    "NIFTY": 5,
-    "BANKNIFTY": 4
+    "NIFTY": 6,
+    "BANKNIFTY": 5
   },
-  "last_accept_timestamp": "2026-03-05T19:08:31.210256"
+  "last_accept_timestamp": "2026-03-05T19:14:40.857023"
 }
