@@ -323,6 +323,9 @@ def run_simulated_paper(n_signals: int = 10):
 
 
 if __name__ == "__main__":
+    import json
+    from src.monitoring.summary_reporter import print_summary, generate_recon_summary
+
     bt_valid, bt_rejected = run_backtest()
     paper_valid = run_simulated_paper(10)
 
@@ -331,6 +334,14 @@ if __name__ == "__main__":
     print(f"Backtest: {bt_valid} valid / {bt_rejected} rejected")
     print(f"Paper signals: {paper_valid}")
     print("=" * 60)
+
+    # Print summary and save to JSON
+    summary = print_summary()
+    summary_path = os.path.join(os.path.dirname(__file__), "reports", "recon_summary_final.json")
+    with open(summary_path, "w") as f:
+        json.dump(summary, f, indent=2)
+    logger.info("Summary saved to %s", summary_path)
+
     print(
         "TRUE MINIMAL v1.4 RECONNAISSANCE CORE READY -- SYMBOLS LOGGED "
         "-- REPLAY PROTECTION -- WARNING BANNER -- INFRA HIERARCHY RULE IN README "

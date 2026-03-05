@@ -29,6 +29,7 @@ from src.strategy.side_selector import select_sides
 from src.strategy.filters import premium_ratio_gate
 from src.strategy.risk_manager_minimal import check_total_exposure, check_concurrent_limit
 from src.utils.integrity_audit_minimal import audit_params
+from src.monitoring.summary_reporter import print_summary
 
 WARNING_BANNER = (
     "WARNING: COSTS, SLIPPAGE, AND TAXES NOT APPLIED -- RESULTS NOT REALISTIC"
@@ -221,6 +222,12 @@ def run_one_cycle(processed: set[str], active_trades: list[dict], valid_count: i
             logger.info("%s", WARNING_BANNER)
             logger.info("VALID TRADE #%d: %s", valid_count, obs_text)
 
+            # Periodic summary every 5 ACCEPTs
+            if valid_count % 5 == 0:
+                logger.info("RECON SUMMARY TRIGGERED -- accepts so far: %d / total processed: %d",
+                            valid_count, len(processed))
+                print_summary()
+
         append_processed_bar(bar_id)
         processed.add(bar_id)
 
@@ -275,6 +282,11 @@ def main():
     logger.info("PAPER RECON COMPLETE — %d valid trades logged", valid_count)
     logger.info("%s", WARNING_BANNER)
     logger.info("=" * 60)
+
+    # Final summary
+    logger.info("RECON SUMMARY TRIGGERED -- accepts so far: %d / total processed: %d",
+                valid_count, len(processed))
+    print_summary()
 
 
 if __name__ == "__main__":
