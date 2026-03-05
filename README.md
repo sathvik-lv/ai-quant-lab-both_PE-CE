@@ -64,3 +64,11 @@ python run_paper_recon.py
 - summary_reporter.py is read-only -- consumes logs, produces stats only
 - Goal: quantify rejection dominance without ever questioning the frozen rules
 - Any modification that writes back to decision logic files = INVALID
+
+## HUMAN REVIEW CHECKPOINT 4 -- FINAL INTEGRITY LOCK
+
+- Integrity verification layer added -- hashes protect frozen strategy file
+- Any change to STRATEGY_LOCKED_V1.4_CE_PE.md now triggers immediate invalidation
+- All .py files in src/ monitored for unexpected changes (warn only)
+- Recon phase COMPLETE when integrity passes + summary shows expected boring/reject-heavy behavior
+- NO FURTHER EXPANSIONS ALLOWED -- transition to live/paper-trading branch ONLY after this checkpoint

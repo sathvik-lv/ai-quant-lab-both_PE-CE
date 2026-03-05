@@ -238,6 +238,12 @@ def run_one_cycle(processed: set[str], active_trades: list[dict], valid_count: i
 
 
 def main():
+    from src.utils.strategy_integrity import verify_strategy_hash
+    if not verify_strategy_hash():
+        print("Integrity check FAILED — aborting run.")
+        sys.exit(1)
+    print("STRATEGY FILE INTEGRITY VERIFIED — proceeding.")
+
     logger.info("=" * 60)
     logger.info("PAPER RECON START — session=%s", _session_id)
     logger.info("%s", WARNING_BANNER)

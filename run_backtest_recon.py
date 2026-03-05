@@ -131,6 +131,12 @@ def simulate_chain_data(index: str, bar_time: datetime, side: str) -> dict:
 
 
 def run_backtest():
+    from src.utils.strategy_integrity import verify_strategy_hash
+    if not verify_strategy_hash():
+        print("Integrity check FAILED — aborting run.")
+        sys.exit(1)
+    print("STRATEGY FILE INTEGRITY VERIFIED — proceeding.")
+
     logger.info("=" * 60)
     logger.info("BACKTEST RECON START")
     logger.info("%s", WARNING_BANNER)
