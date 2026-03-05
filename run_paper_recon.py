@@ -36,6 +36,7 @@ WARNING_BANNER = (
 
 PROCESSED_BARS_FILE = os.path.join(os.path.dirname(__file__), "processed_bars.log")
 OBSERVATIONS_FILE = os.path.join(os.path.dirname(__file__), "observations_log.md")
+DECISION_LOG_FILE = os.path.join(os.path.dirname(__file__), "decision_log.md")
 POLL_INTERVAL = 180  # 3 minutes
 MAX_VALID_TRADES = 30
 
@@ -78,6 +79,12 @@ def log_observation(bar_id: str, text: str) -> None:
     ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     with open(OBSERVATIONS_FILE, "a") as f:
         f.write(f"{ts} | {bar_id} | {text}\n")
+
+
+def log_decision(bar_id: str, side: str, decision: str, reason: str) -> None:
+    ts = datetime.now().isoformat()
+    with open(DECISION_LOG_FILE, "a") as f:
+        f.write(f"{ts} | {bar_id} | side={side} | decision={decision} | reason={reason}\n")
 
 
 def extract_premium(chain: dict, strike: float, expiry: str, side: str) -> float:
@@ -124,6 +131,7 @@ def run_one_cycle(processed: set[str], active_trades: list[dict], valid_count: i
             append_processed_bar(bar_id)
             processed.add(bar_id)
             log_observation(bar_id, f"{index} DATA_QUALITY_FAIL")
+            log_decision(bar_id, "N/A", "REJECT", f"data_quality_fail_{index}")
             continue
 
         # Spot price
@@ -168,16 +176,25 @@ def run_one_cycle(processed: set[str], active_trades: list[dict], valid_count: i
                     f"ratio={ratio:.4f}, W={w_premium:.2f}, M={m_premium:.2f}, "
                     f"side={side}, REJECTED"
                 )
+                log_decision(bar_id, side, "REJECT",
+                             f"premium_ratio_{ratio:.2f}_outside_0.9-1.1")
                 continue
 
             # Capital exposure gate (60% total)
             if not check_total_exposure(active_trades, index, side):
                 log_observation(bar_id, f"{index} {side} EXPOSURE_GATE_REJECT")
+                from config.frozen_params import CAPITAL_PCT as _CP
+                _cur = sum(_CP.get(f"{t['index']}_{t['side']}", 0) for t in active_trades)
+                _new = _CP.get(f"{index}_{side}", 0)
+                log_decision(bar_id, side, "REJECT",
+                             f"total_exposure_would_be_{_cur + _new:.1f}_percent")
                 continue
 
             # Concurrent limit
             if not check_concurrent_limit(active_trades, index, side):
                 log_observation(bar_id, f"{index} {side} CONCURRENT_LIMIT_REJECT")
+                log_decision(bar_id, side, "REJECT",
+                             f"concurrent_limit_{index}_{side}")
                 continue
 
             # Valid trade signal
@@ -200,6 +217,7 @@ def run_one_cycle(processed: set[str], active_trades: list[dict], valid_count: i
                 f"side={side}"
             )
             log_observation(bar_id, obs_text)
+            log_decision(bar_id, side, "ACCEPT", "passed_all_gates")
             logger.info("%s", WARNING_BANNER)
             logger.info("VALID TRADE #%d: %s", valid_count, obs_text)
 

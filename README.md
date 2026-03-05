@@ -48,3 +48,11 @@ pip install -r requirements.txt
 python run_backtest_recon.py
 python run_paper_recon.py
 ```
+
+## HUMAN REVIEW CHECKPOINT 2 -- EXPANSION PHASE
+
+- Only visibility/logging additions allowed from this point
+- Core logic remains frozen per STRATEGY_LOCKED_V1.4_CE_PE.md
+- Any commit that modifies side_selector.py, filters.py, or frozen_params.py logic = INVALID
+- decision_log.md must remain factual, timestamped, mechanical only
+- Goal: build full visibility into why 83,990+ bars are rejected without changing why
