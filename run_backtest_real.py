@@ -784,14 +784,66 @@ def write_excel(completed_trades, ratio_timeseries, final_equity, output_path):
 # ENTRY POINT
 # ═══════════════════════════════════════════════════════════════
 
+def write_csv(completed_trades, ratio_timeseries, output_dir):
+    """Write trades CSV and ratio timeseries CSV matching reference format."""
+
+    trade_headers = [
+        'trade_num', 'trade_id', 'index', 'side', 'atm_strike',
+        'near_expiry', 'far_expiry', 'entry_date', 'entry_time_ist',
+        'exit_date', 'exit_time_ist', 'days_open',
+        'entry_near', 'entry_far', 'exit_near', 'exit_far',
+        'entry_ratio', 'near_prem_change', 'far_prem_change',
+        'near_prem_change_pct', 'far_prem_change_pct',
+        'lots', 'lot_size', 'capital_deployed',
+        'entry_costs', 'exit_costs', 'total_costs',
+        'raw_pnl', 'net_pnl',
+        'exit_reason', 'all_triggered_exits',
+        'equity_before', 'equity_after',
+        'entry_event', 'exit_event', 'result',
+    ]
+
+    trades_csv = os.path.join(output_dir, "backtest_results_v1_4_CE_PE_multiyear.csv")
+    with open(trades_csv, 'w', newline='') as f:
+        writer = csv.DictWriter(f, fieldnames=trade_headers, extrasaction='ignore')
+        writer.writeheader()
+        for t in completed_trades:
+            writer.writerow(t)
+    logger.info("Trades CSV saved to: %s", trades_csv)
+
+    ratio_headers = ['date', 'index', 'near_expiry', 'far_expiry', 'type',
+                     'near_prem', 'far_prem', 'ratio', 'spot', 'atm', 'event']
+
+    ratio_csv = os.path.join(output_dir, "ratio_timeseries_CE_PE_2020_2025.csv")
+    with open(ratio_csv, 'w', newline='') as f:
+        writer = csv.DictWriter(f, fieldnames=ratio_headers, extrasaction='ignore')
+        writer.writeheader()
+        for r in ratio_timeseries:
+            writer.writerow(r)
+    logger.info("Ratio CSV saved to: %s", ratio_csv)
+
+
+def write_start_txt(output_dir):
+    """Write strategy start text file matching reference format."""
+    from src.utils.strategy_integrity import EXPECTED_HASH
+    txt_path = os.path.join(output_dir, "v1.4(PE&CE)start.txt")
+    strategy_path = os.path.join(PROJECT_ROOT, "STRATEGY_LOCKED_V1.4_CE_PE.md")
+    with open(strategy_path, 'r') as f:
+        content = f.read()
+    with open(txt_path, 'w') as f:
+        f.write(content)
+    logger.info("Start text saved to: %s", txt_path)
+
+
 if __name__ == "__main__":
     OUTPUT_DIR = r"C:\Users\sathv\OneDrive\Desktop\backtesting_fo\v1.4(PE&CE)[2020-2025]"
     OUTPUT_FILE = os.path.join(OUTPUT_DIR, "ATM_Calendar_v1_4_CE_PE_MultiYear_2020_2025.xlsx")
 
     trades, ratios, final_eq = run_backtest()
     write_excel(trades, ratios, final_eq, OUTPUT_FILE)
+    write_csv(trades, ratios, OUTPUT_DIR)
+    write_start_txt(OUTPUT_DIR)
 
     print(f"\nBacktest complete!")
     print(f"Total trades: {len(trades)}")
     print(f"Final equity: {final_eq:,.2f}")
-    print(f"Output: {OUTPUT_FILE}")
+    print(f"Output: {OUTPUT_DIR}")
