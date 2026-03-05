@@ -56,3 +56,11 @@ python run_paper_recon.py
 - Any commit that modifies side_selector.py, filters.py, or frozen_params.py logic = INVALID
 - decision_log.md must remain factual, timestamped, mechanical only
 - Goal: build full visibility into why 83,990+ bars are rejected without changing why
+
+## HUMAN REVIEW CHECKPOINT 3 -- MONITORING PHASE
+
+- Only passive summary reporting & stats added
+- Core execution logic frozen -- no changes allowed to side_selector, filters, risk_manager
+- summary_reporter.py is read-only -- consumes logs, produces stats only
+- Goal: quantify rejection dominance without ever questioning the frozen rules
+- Any modification that writes back to decision logic files = INVALID
