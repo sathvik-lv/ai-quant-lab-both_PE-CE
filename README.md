@@ -72,3 +72,12 @@ python run_paper_recon.py
 - All .py files in src/ monitored for unexpected changes (warn only)
 - Recon phase COMPLETE when integrity passes + summary shows expected boring/reject-heavy behavior
 - NO FURTHER EXPANSIONS ALLOWED -- transition to live/paper-trading branch ONLY after this checkpoint
+
+## LIVE / PAPER TRANSITION RULES -- NON-NEGOTIABLE
+
+- main branch is IMMUTABLE PRODUCTION BASE -- never commit directly to main again
+- To go live: set LIVE_MODE = True in config/live_params.py -> commit to live-paper-v1.4-guardrails -> deploy ONLY from this branch
+- run_live.py WILL NOT START without integrity hash match + no kill.switch + LIVE_MODE=True
+- ALL live/paper runs MUST show permanent realistic-cost banner
+- Any observed deviation from recon behavior -> flip kill.switch + investigate frozen logic
+- Goal: preserve boring, mechanical, high-rejection behavior in live conditions
